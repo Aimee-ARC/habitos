@@ -6,6 +6,8 @@ import datetime
 import os
 import matplotlib.pyplot as plt
 
+
+
 # Archivo donde guardaremos los hábitos
 HABITS_FILE = "habits.json"
 
@@ -188,9 +190,31 @@ def show_trends():
 # Cargar hábitos al iniciar la app
 habits = load_habits()
 
+
+
 # Configuración de la ventana principal
 root = tk.Tk()
 root.title("Seguimiento de Hábitos")
+
+
+import requests
+
+category = 'happiness'
+api_url = 'https://api.api-ninjas.com/v1/quotes?category={}'.format(category)
+response = requests.get(api_url, headers={'X-Api-Key': 'UfzmMDWqiU962nYZGZurIw==nLlSvls0UwwXfycs'})
+if response.status_code == requests.codes.ok:
+    quotes = response.json()  # Convierte la respuesta JSON en un objeto Python
+    if quotes:  # Verifica que la lista de citas no esté vacía
+        motivationalquote = quotes[0]['quote']  # Accede a la primera cita
+        print(motivationalquote)  # Imprime solo la cita
+    else:
+        print("No se encontraron citas.")
+else:
+    print("Error:", response.status_code, response.text)
+
+# Agregar el mensaje de bienvenida
+welcome_label = tk.Label(root, text= motivationalquote, font=("Arial", 14))
+welcome_label.pack(pady=10)  # Ajusta el padding según sea necesario
 
 # Lista de categorías predefinidas
 categories = ["Salud", "Trabajo", "Ocio", "Personal", "Estudio"]
@@ -209,6 +233,7 @@ category_menu.pack()
 # Listbox para mostrar los hábitos agregados
 habit_listbox = tk.Listbox(root)
 habit_listbox.pack(pady=10)
+
 
 # Cargar los hábitos en la lista al iniciar
 for habit in habits:
