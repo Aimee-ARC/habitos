@@ -6,6 +6,89 @@ import datetime
 import os
 import matplotlib.pyplot as plt
 
+# Archivo donde guardaremos las categorías
+CATEGORIES_FILE = "categories.json"
+
+# Cargar categorías desde el archivo JSON
+def load_categories():
+    if os.path.exists(CATEGORIES_FILE):
+        with open(CATEGORIES_FILE, "r") as file:
+            return json.load(file)
+    return ["Salud", "Trabajo", "Ocio", "Personal", "Estudio"]  # Categorías por defecto
+
+# Guardar categorías en el archivo JSON
+def save_categories():
+    with open(CATEGORIES_FILE, "w") as file:
+        json.dump(categories, file)
+
+
+def update_category_menu():
+    category_menu['menu'].delete(0, 'end')  # Limpia el menú existente
+    for category in categories:
+        category_menu['menu'].add_command(label=category, command=lambda value=category: category_var.set(value))
+    category_var.set(categories[0])  # Restablecer la categoría seleccionada
+
+def edit_categories():
+    edit_window = tk.Toplevel(root)
+    edit_window.title("Editar Categorías")
+
+    # Listbox para mostrar las categorías actuales
+    category_listbox = tk.Listbox(edit_window)
+    category_listbox.pack(pady=10)
+    
+    for category in categories:
+        category_listbox.insert(tk.END, category)
+
+    def add_new_category():
+        new_category = simpledialog.askstring("Nueva categoría", "Introduce el nombre de la nueva categoría:")
+        if new_category:
+            if new_category not in categories:
+                categories.append(new_category)
+                save_categories()
+                update_category_menu()
+                category_listbox.insert(tk.END, new_category)
+                messagebox.showinfo("Éxito", f"Categoría '{new_category}' agregada.")
+            else:
+                messagebox.showwarning("Advertencia", "La categoría ya existe.")
+
+    def modify_category():
+        selected_index = category_listbox.curselection()
+        if selected_index:
+            current_category = categories[selected_index[0]]
+            new_name = simpledialog.askstring("Modificar categoría", f"Modificar '{current_category}':")
+            if new_name and new_name != current_category:
+                if new_name not in categories:
+                    categories[selected_index[0]] = new_name
+                    save_categories()
+                    update_category_menu()
+                    category_listbox.delete(selected_index)
+                    category_listbox.insert(selected_index, new_name)
+                    messagebox.showinfo("Éxito", "Categoría modificada.")
+                else:
+                    messagebox.showwarning("Advertencia", "La nueva categoría ya existe.")
+        else:
+            messagebox.showerror("Error", "Por favor, selecciona una categoría para modificar.")
+
+    def delete_category():
+        selected_index = category_listbox.curselection()
+        if selected_index:
+            category_to_delete = categories[selected_index[0]]
+            if category_to_delete != "Personal":
+                categories.remove(category_to_delete)
+                save_categories()
+                update_category_menu()
+                category_listbox.delete(selected_index)
+                messagebox.showinfo("Éxito", f"Categoría '{category_to_delete}' eliminada.")
+            else:
+                messagebox.showwarning("Advertencia", "No se puede eliminar la categoría por defecto.")
+        else:
+            messagebox.showerror("Error", "Por favor, selecciona una categoría para eliminar.")
+
+    # Botones para añadir, modificar y eliminar categorías
+    tk.Button(edit_window, text="Añadir Categoría", command=add_new_category).pack(pady=5)
+    tk.Button(edit_window, text="Modificar Categoría", command=modify_category).pack(pady=5)
+    tk.Button(edit_window, text="Eliminar Categoría", command=delete_category).pack(pady=5)
+
 
 
 # Archivo donde guardaremos los hábitos
@@ -189,6 +272,7 @@ def show_trends():
 
 # Cargar hábitos al iniciar la app
 habits = load_habits()
+categories = load_categories()
 
 
 
@@ -217,7 +301,7 @@ welcome_label = tk.Label(root, text= motivationalquote, font=("Arial", 14))
 welcome_label.pack(pady=10)  # Ajusta el padding según sea necesario
 
 # Lista de categorías predefinidas
-categories = ["Salud", "Trabajo", "Ocio", "Personal", "Estudio"]
+#categories = ["Salud", "Trabajo", "Ocio", "Personal", "Estudio"]
 category_var = tk.StringVar(value=categories[0])  # Valor por defecto
 
 # Etiqueta y entrada para agregar hábitos
@@ -247,5 +331,8 @@ tk.Button(root, text="Eliminar Hábito", command=delete_habit).pack(pady=5)
 tk.Button(root, text="Mostrar Hábitos", command=show_habits).pack(pady=5)
 tk.Button(root, text="Mostrar Estadísticas", command=show_statistics).pack(pady=5)
 tk.Button(root, text="Mostrar Tendencias", command=show_trends).pack(pady=5)
+# Reemplaza el botón anterior con este
+tk.Button(root, text="Editar Categorías", command=edit_categories).pack(pady=5)
+
 
 root.mainloop()
