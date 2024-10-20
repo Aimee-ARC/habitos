@@ -276,63 +276,96 @@ categories = load_categories()
 
 
 
+import tkinter as tk
+from PIL import Image, ImageTk  # Para manejar imágenes con PIL
+import requests
+
 # Configuración de la ventana principal
 root = tk.Tk()
 root.title("Seguimiento de Hábitos")
+root.geometry("900x600")  # Ajustar tamaño según necesidad
+
+# Cargar imagen de fondo y ajustarla al tamaño de la ventana
+image = Image.open("fondo.png")  # Cambia por la ruta de tu imagen
+image = image.resize((1100, 800), Image.Resampling.LANCZOS)  # Redimensionar imagen a 900x600 (mismo tamaño que la ventana)
+bg_image = ImageTk.PhotoImage(image)
+
+# Crear un label para contener la imagen de fondo
+background_label = tk.Label(root, image=bg_image)
+background_label.place(x=0, y=0, relwidth=1, relheight=1)  # Expande la imagen al tamaño de la ventana
 
 
-import requests
-
+'''
+# Obtener cita motivacional de la API
 category = 'happiness'
-api_url = 'https://api.api-ninjas.com/v1/quotes?category={}'.format(category)
+api_url = f'https://api.api-ninjas.com/v1/quotes?category={category}'
 response = requests.get(api_url, headers={'X-Api-Key': 'UfzmMDWqiU962nYZGZurIw==nLlSvls0UwwXfycs'})
 if response.status_code == requests.codes.ok:
-    quotes = response.json()  # Convierte la respuesta JSON en un objeto Python
-    if quotes:  # Verifica que la lista de citas no esté vacía
-        motivationalquote = quotes[0]['quote']  # Accede a la primera cita
-        print(motivationalquote)  # Imprime solo la cita
+    quotes = response.json()
+    if quotes:
+        motivationalquote = quotes[0]['quote']
     else:
-        print("No se encontraron citas.")
+        motivationalquote = "No se encontraron citas motivacionales."
 else:
-    print("Error:", response.status_code, response.text)
+    motivationalquote = "Error al obtener la cita motivacional."
+'''
+# Configurar el layout de la ventana principal con grid
+root.grid_rowconfigure(1, weight=1)  # Fila del contenido principal
+root.grid_columnconfigure(0, weight=1)  # Columna izquierda (hábito y lista)
+root.grid_columnconfigure(1, weight=1)  # Columna derecha (botones)
 
-# Agregar el mensaje de bienvenida
-welcome_label = tk.Label(root, text= motivationalquote, font=("Arial", 14))
-welcome_label.pack(pady=10)  # Ajusta el padding según sea necesario
+# Crear un frame con margen de color, centrado en la ventana (para la cita motivacional)
+welcome_frame = tk.Frame(root, bg="#d494b2", padx=10, pady=10)  # Margen de color rojo
+welcome_frame.grid(row=0, column=0, columnspan=2, pady=10, sticky="ew")  # Ocupa ambas columnas, centrado
 
-# Lista de categorías predefinidas
-#categories = ["Salud", "Trabajo", "Ocio", "Personal", "Estudio"]
-category_var = tk.StringVar(value=categories[0])  # Valor por defecto
+# Crear la etiqueta dentro del frame para la cita motivacional
+welcome_label = tk.Label(welcome_frame, text="motivationalquote", font=("Segoe Script", 14), wraplength=500, bg="#f0f8ff")
+welcome_label.pack()
 
+# Sección izquierda (entrada de hábitos, lista)
 # Etiqueta y entrada para agregar hábitos
-tk.Label(root, text="Nombre del hábito:").pack(pady=10)
+habit_label = tk.Label(root, text="Nombre del hábito:", font=("Berlin Sans FB Demi", 12), bg="#deaf99", fg= "white")
+habit_label.grid(row=1, column=0, sticky="w", padx=10, pady=5)
+
 habit_entry = tk.Entry(root)
-habit_entry.pack()
+habit_entry.grid(row=2, column=0, padx=10, pady=5, sticky="ew")
 
 # Menú desplegable para seleccionar la categoría
-tk.Label(root, text="Categoría del hábito:").pack(pady=10)
+category_label = tk.Label(root, text="Categoría del hábito:", font=("Berlin Sans FB Demi", 12), bg="#deaf99", fg= "white")
+category_label.grid(row=3, column=0, sticky="w", padx=10, pady=5)
+
+category_var = tk.StringVar(value=categories[0])
 category_menu = tk.OptionMenu(root, category_var, *categories)
-category_menu.pack()
+category_menu.grid(row=4, column=0, padx=10, pady=5, sticky="ew")
 
 # Listbox para mostrar los hábitos agregados
 habit_listbox = tk.Listbox(root)
-habit_listbox.pack(pady=10)
-
+habit_listbox.grid(row=5, column=0, padx=10, pady=10, sticky="nsew")  # Expansible
 
 # Cargar los hábitos en la lista al iniciar
 for habit in habits:
     habit_listbox.insert(tk.END, f"{habit['name']} ({habit['category']})")
 
-# Botones para agregar, marcar completado, modificar y eliminar hábitos
-tk.Button(root, text="Agregar Hábito", command=add_habit).pack(pady=5)
-tk.Button(root, text="Marcar Completado", command=mark_completed).pack(pady=5)
-tk.Button(root, text="Modificar Hábito", command=modify_habit).pack(pady=5)
-tk.Button(root, text="Eliminar Hábito", command=delete_habit).pack(pady=5)
-tk.Button(root, text="Mostrar Hábitos", command=show_habits).pack(pady=5)
-tk.Button(root, text="Mostrar Estadísticas", command=show_statistics).pack(pady=5)
-tk.Button(root, text="Mostrar Tendencias", command=show_trends).pack(pady=5)
-# Reemplaza el botón anterior con este
-tk.Button(root, text="Editar Categorías", command=edit_categories).pack(pady=5)
+# Sección derecha (botones)
+button_style = {"font": ("Berlin Sans FB Demi", 12), "bg": "#b594d4", "fg": "white", "activebackground": "#45a049", "width": 20}
 
+buttons = [
+    ("Agregar Hábito", add_habit),
+    ("Marcar Completado", mark_completed),
+    ("Modificar Hábito", modify_habit),
+    ("Eliminar Hábito", delete_habit),
+    ("Mostrar Hábitos", show_habits),
+    ("Mostrar Estadísticas", show_statistics),
+    ("Mostrar Tendencias", show_trends),
+    ("Editar Categorías", edit_categories),
+]
 
+# Posicionar los botones en la columna derecha
+row_index = 1
+for btn_text, btn_command in buttons:
+    button = tk.Button(root, text=btn_text, command=btn_command, **button_style)
+    button.grid(row=row_index, column=1, padx=20, pady=5, sticky="ew")  # Expandirse en la columna
+    row_index += 1
+
+# Ejecutar la ventana principal
 root.mainloop()
