@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import messagebox
 import matplotlib.pyplot as plt
 from tkinter import simpledialog
-from PIL import Image, ImageTk  # Para manejar imágenes con PIL
+from PIL import Image, ImageTk
 import requests
 
 ################# funciones de categorías ########################################################################################
@@ -318,11 +318,10 @@ categories = load_categories()
 ################################### Configuración de la ventana principal #########################################################################
 root = tk.Tk()
 root.title("Seguimiento de Hábitos")
-root.geometry("900x600")  # Ajustar tamaño según necesidad
+root.geometry("900x600")  
 
-# Cargar imagen de fondo y ajustarla al tamaño de la ventana
-image = Image.open("fondo.png")  # Cambia por la ruta de tu imagen
-image = image.resize((1100, 800), Image.Resampling.LANCZOS)  # Redimensionar imagen a 900x600 (mismo tamaño que la ventana)
+image = Image.open("fondo.png")  
+image = image.resize((1100, 800), Image.Resampling.LANCZOS)  # Redimensiona imagen 
 bg_image = ImageTk.PhotoImage(image)
 
 # Crear un label para contener la imagen de fondo
@@ -330,7 +329,6 @@ background_label = tk.Label(root, image=bg_image)
 background_label.place(x=0, y=0, relwidth=1, relheight=1)  # Expande la imagen al tamaño de la ventana
 
 
-'''
 # Obtener cita motivacional de la API
 category = 'happiness'
 api_url = f'https://api.api-ninjas.com/v1/quotes?category={category}'
@@ -343,18 +341,18 @@ if response.status_code == requests.codes.ok:
         motivationalquote = "No se encontraron citas motivacionales."
 else:
     motivationalquote = "Error al obtener la cita motivacional."
-'''
-# Configurar el layout de la ventana principal con grid
+
+#  layout de la ventana principal con grid
 root.grid_rowconfigure(1, weight=1)  # Fila del contenido principal
 root.grid_columnconfigure(0, weight=1)  # Columna izquierda (hábito y lista)
 root.grid_columnconfigure(1, weight=1)  # Columna derecha (botones)
 
-# Crear un frame con margen de color, centrado en la ventana (para la cita motivacional)
-welcome_frame = tk.Frame(root, bg="#d494b2", padx=10, pady=10)  # Margen de color rojo
+# frame con margen de color, centrado en la ventana (para la cita motivacional)
+welcome_frame = tk.Frame(root, bg="#d494b2", padx=6, pady=6)  # Margen de color rojo
 welcome_frame.grid(row=0, column=0, columnspan=2, pady=10, sticky="ew")  # Ocupa ambas columnas, centrado
 
-# Crear la etiqueta dentro del frame para la cita motivacional
-welcome_label = tk.Label(welcome_frame, text="motivationalquote", font=("Segoe Script", 14), wraplength=500, bg="#f0f8ff")
+# etiqueta dentro del frame para la cita motivacional
+welcome_label = tk.Label(welcome_frame, text= motivationalquote, font=("Segoe Script", 14), wraplength=880, bg="#f0f8ff")
 welcome_label.pack()
 
 # Sección izquierda (entrada de hábitos, lista)
