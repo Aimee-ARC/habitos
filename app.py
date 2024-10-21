@@ -1,22 +1,27 @@
-import tkinter as tk
-from tkinter import messagebox
-from tkinter import simpledialog
+############## librerias ##########################################################################################################
+import os
 import json
 import datetime
-import os
+import tkinter as tk
+from tkinter import messagebox
 import matplotlib.pyplot as plt
+from tkinter import simpledialog
+from PIL import Image, ImageTk  # Para manejar imágenes con PIL
+import requests
 
-# Archivo donde guardaremos las categorías
+################# funciones de categorías ########################################################################################
+
+# archivo donde guardaremos las categorías
 CATEGORIES_FILE = "categories.json"
 
-# Cargar categorías desde el archivo JSON
+# función para cargar categorías desde el archivo JSON
 def load_categories():
     if os.path.exists(CATEGORIES_FILE):
         with open(CATEGORIES_FILE, "r") as file:
             return json.load(file)
-    return ["Salud", "Trabajo", "Ocio", "Personal", "Estudio"]  # Categorías por defecto
+    return ["Salud", "Trabajo", "Ocio", "Personal", "Estudio"]  # Categorías por defecto cuando se inicia la app, se pueden cambiar en el json
 
-# Guardar categorías en el archivo JSON
+# función para guardar categorías en el archivo JSON
 def save_categories():
     with open(CATEGORIES_FILE, "w") as file:
         json.dump(categories, file)
@@ -28,12 +33,18 @@ def update_category_menu():
         category_menu['menu'].add_command(label=category, command=lambda value=category: category_var.set(value))
     category_var.set(categories[0])  # Restablecer la categoría seleccionada
 
+# Función para editar categorías
 def edit_categories():
     edit_window = tk.Toplevel(root)
     edit_window.title("Editar Categorías")
+    edit_window.configure(bg="#d494b2")  # Cambia el color de fondo de la ventana
+
+    # Estilos de los widgets
+    label_style = {"bg": "#f0f0f0", "font": ("Berlin Sans FB Demi", 12)}
+    button_style = {"font": ("Berlin Sans FB Demi", 12), "bg": "#b594d4", "fg": "white", "activebackground": "#94b5d4"}
 
     # Listbox para mostrar las categorías actuales
-    category_listbox = tk.Listbox(edit_window)
+    category_listbox = tk.Listbox(edit_window, font=("Berlin Sans FB Demi", 12), width=30)
     category_listbox.pack(pady=10)
     
     for category in categories:
@@ -85,11 +96,12 @@ def edit_categories():
             messagebox.showerror("Error", "Por favor, selecciona una categoría para eliminar.")
 
     # Botones para añadir, modificar y eliminar categorías
-    tk.Button(edit_window, text="Añadir Categoría", command=add_new_category).pack(pady=5)
-    tk.Button(edit_window, text="Modificar Categoría", command=modify_category).pack(pady=5)
-    tk.Button(edit_window, text="Eliminar Categoría", command=delete_category).pack(pady=5)
+    tk.Button(edit_window, text="Añadir Categoría", command=add_new_category, **button_style).pack(pady=5)
+    tk.Button(edit_window, text="Modificar Categoría", command=modify_category, **button_style).pack(pady=5)
+    tk.Button(edit_window, text="Eliminar Categoría", command=delete_category, **button_style).pack(pady=5)
 
 
+###########funciones de habitos ######################################################################################
 
 # Archivo donde guardaremos los hábitos
 HABITS_FILE = "habits.json"
@@ -160,15 +172,22 @@ def modify_habit():
         # Crear un pop-up para editar el hábito
         modify_window = tk.Toplevel(root)
         modify_window.title("Modificar Hábito")
+        modify_window.configure(bg="#d494b2")  # Cambia el color de fondo de la ventana
 
-        tk.Label(modify_window, text="Nombre del hábito:").pack(pady=5)
-        new_habit_entry = tk.Entry(modify_window)
+        # Estilos de los widgets
+        label_style = {"bg": "#f0f0f0", "font": ("Berlin Sans FB Demi", 12)}
+        entry_style = {"font": ("Berlin Sans FB Demi", 12), "width": 30}  # Cambia el tamaño del Entry
+        button_style = {"font": ("Berlin Sans FB Demi", 12), "bg": "#b594d4", "fg": "white", "activebackground": "#94b5d4"}
+
+        tk.Label(modify_window, text="Nombre del hábito:", **label_style).pack(pady=5)
+        new_habit_entry = tk.Entry(modify_window, **entry_style)
         new_habit_entry.insert(0, current_habit["name"])
         new_habit_entry.pack(pady=5)
 
-        tk.Label(modify_window, text="Categoría del hábito:").pack(pady=5)
+        tk.Label(modify_window, text="Categoría del hábito:", **label_style).pack(pady=5)
         new_category_var = tk.StringVar(value=current_habit["category"])
         category_menu = tk.OptionMenu(modify_window, new_category_var, *categories)
+        category_menu.config(bg="#f0f0f0", font=("Berlin Sans FB Demi", 12))  # Personaliza el menú de categorías
         category_menu.pack(pady=5)
 
         def save_changes():
@@ -186,8 +205,8 @@ def modify_habit():
             else:
                 messagebox.showerror("Error", "El campo de nombre no puede estar vacío.")
 
-        tk.Button(modify_window, text="Guardar Cambios", command=save_changes).pack(pady=10)
-        tk.Button(modify_window, text="Cancelar", command=modify_window.destroy).pack(pady=5)
+        tk.Button(modify_window, text="Guardar Cambios", command=save_changes, **button_style).pack(pady=10)
+        tk.Button(modify_window, text="Cancelar", command=modify_window.destroy, **button_style).pack(pady=5)
     else:
         messagebox.showerror("Error", "Por favor selecciona un hábito para modificar.")
 
@@ -203,6 +222,8 @@ def delete_habit():
     else:
         messagebox.showerror("Error", "Por favor selecciona un hábito para eliminar.")
 
+###########funciones de estadisticas y así ######################################################################################
+
 # Función para mostrar las estadísticas de los hábitos
 def show_statistics():
     if not habits:
@@ -212,13 +233,20 @@ def show_statistics():
     habit_names = [habit["name"] for habit in habits]
     completed_days = [len(habit["completed"]) for habit in habits]
 
-    plt.bar(habit_names, completed_days, color='skyblue')
+    # Definir una lista de colores
+    colors = ['#deaf99', '#b594d4', '#d494b2', '#94b5d4', '#94d4aa', '#d4c994']
+
+    # Asegurarse de que haya suficientes colores para los hábitos
+    color_choice = [colors[i % len(colors)] for i in range(len(habit_names))]
+
+    plt.bar(habit_names, completed_days, color=color_choice)
     plt.xlabel('Hábitos')
     plt.ylabel('Días completados')
     plt.title('Estadísticas de seguimiento de hábitos')
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     plt.show()
+
 
 # Función para mostrar tendencias de hábitos
 def show_trend(habit_index):
@@ -233,20 +261,32 @@ def show_trend(habit_index):
     # Extraer fechas y conteos para graficar
     dates_sorted, counts_sorted = zip(*sorted_days)
 
-    plt.plot(dates_sorted, counts_sorted, marker='o')
-    plt.xlabel('Fecha')
-    plt.ylabel('Días completados')
-    plt.title(f'Tendencia del hábito: {habit["name"]}')
-    plt.xticks(rotation=45)
-    plt.tight_layout()
+    # Definir una lista de colores
+    colors = ['#deaf99', '#b594d4', '#d494b2', '#94b5d4', '#94d4aa', '#d4c994']
+    
+    # Elegir un color específico para el hábito actual
+    color = colors[habit_index % len(colors)]
+
+    # Personalizar la gráfica
+    plt.figure(figsize=(10, 6))  # Tamaño de la figura
+    plt.plot(dates_sorted, counts_sorted, marker='o', color=color, markersize=8, linewidth=2)  # Color y estilo de la línea
+    plt.xlabel('Fecha', fontsize=14)  # Etiqueta de eje X
+    plt.ylabel('Días completados', fontsize=14)  # Etiqueta de eje Y
+    plt.title(f'Tendencia del hábito: {habit["name"]}', fontsize=16)  # Título de la gráfica
+    plt.xticks(rotation=45, fontsize=12)  # Rotación y tamaño de las etiquetas del eje X
+    plt.yticks(fontsize=12)  # Tamaño de las etiquetas del eje Y
+    plt.grid(True, linestyle='--', alpha=0.7)  # Agregar una cuadrícula
+    plt.tight_layout()  # Ajustar la disposición
     plt.show()
+
 
 # Nueva función para seleccionar un hábito de una lista
 def select_habit(callback):
     selection_window = tk.Toplevel(root)
     selection_window.title("Seleccionar Hábito")
+    selection_window.configure(bg="#d494b2")
 
-    habit_listbox = tk.Listbox(selection_window)
+    habit_listbox = tk.Listbox(selection_window, font=("Berlin Sans FB Demi", 12), width=30)
     for habit in habits:
         habit_listbox.insert(tk.END, f"{habit['name']} ({habit['category']})")
     habit_listbox.pack(pady=10)
@@ -259,8 +299,8 @@ def select_habit(callback):
         else:
             messagebox.showerror("Error", "Por favor selecciona un hábito.")
 
-    tk.Button(selection_window, text="Seleccionar", command=on_select).pack(pady=5)
-    tk.Button(selection_window, text="Cancelar", command=selection_window.destroy).pack(pady=5)
+    tk.Button(selection_window, text="Seleccionar", command=on_select, **button_style).pack(pady=5)
+    tk.Button(selection_window, text="Cancelar", command=selection_window.destroy, **button_style).pack(pady=5)
 
 # Función para mostrar tendencias
 def show_trends():
@@ -270,17 +310,12 @@ def show_trends():
 
     select_habit(lambda index: show_trend(index))
 
-# Cargar hábitos al iniciar la app
+################## Cargar hábitos al iniciar la app ########################
 habits = load_habits()
 categories = load_categories()
 
 
-
-import tkinter as tk
-from PIL import Image, ImageTk  # Para manejar imágenes con PIL
-import requests
-
-# Configuración de la ventana principal
+################################### Configuración de la ventana principal #########################################################################
 root = tk.Tk()
 root.title("Seguimiento de Hábitos")
 root.geometry("900x600")  # Ajustar tamaño según necesidad
@@ -347,7 +382,7 @@ for habit in habits:
     habit_listbox.insert(tk.END, f"{habit['name']} ({habit['category']})")
 
 # Sección derecha (botones)
-button_style = {"font": ("Berlin Sans FB Demi", 12), "bg": "#b594d4", "fg": "white", "activebackground": "#45a049", "width": 20}
+button_style = {"font": ("Berlin Sans FB Demi", 12), "bg": "#b594d4", "fg": "white", "activebackground": "#94b5d4", "width": 20}
 
 buttons = [
     ("Agregar Hábito", add_habit),

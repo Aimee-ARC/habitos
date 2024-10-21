@@ -5,7 +5,6 @@ import tkinter.font as font
 def show_fonts():
     root = tk.Tk()
     root.title("Fuentes Disponibles")
-
     # Crear un Canvas para el scroll
     canvas = tk.Canvas(root)
     canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
